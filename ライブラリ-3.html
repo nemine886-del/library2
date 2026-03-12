@@ -1,0 +1,1442 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0">
+<title>マイ学習ライブラリ</title>
+<link href="https://fonts.googleapis.com/css2?family=Zen+Maru+Gothic:wght@400;700;900&family=Nunito:wght@700;900&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --cream: #FAFAF5;
+    --dark: #3D3550;
+    --mid: #8A80A0;
+    --white: #FFFFFF;
+  }
+  * { margin: 0; padding: 0; box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
+  body {
+    background: var(--cream);
+    font-family: 'Zen Maru Gothic', sans-serif;
+    color: var(--dark);
+    min-height: 100vh;
+    padding-bottom: 90px;
+  }
+
+  /* ── Top nav ── */
+  .topbar {
+    position: sticky; top: 0; z-index: 100;
+    background: rgba(250,250,245,0.92);
+    backdrop-filter: blur(12px);
+    -webkit-backdrop-filter: blur(12px);
+    border-bottom: 1.5px solid #EDE8F8;
+    padding: 14px 20px 10px;
+  }
+  .topbar h1 {
+    font-size: 18px; font-weight: 900;
+    background: linear-gradient(135deg, #E8607A, #A070C0, #4090C8);
+    -webkit-background-clip: text; -webkit-text-fill-color: transparent;
+    background-clip: text;
+  }
+  .topbar p { font-size: 11px; color: var(--mid); margin-top: 2px; }
+
+  /* ── Category tabs ── */
+  .tabs {
+    display: flex; gap: 8px;
+    padding: 12px 16px;
+    overflow-x: auto;
+    scrollbar-width: none;
+    background: var(--cream);
+    position: sticky; top: 62px; z-index: 99;
+    border-bottom: 1.5px solid #EDE8F8;
+  }
+  .tabs::-webkit-scrollbar { display: none; }
+  .tab {
+    flex-shrink: 0;
+    padding: 8px 16px; border-radius: 20px;
+    font-size: 13px; font-weight: 700;
+    border: 2px solid transparent;
+    background: white; color: var(--mid);
+    cursor: pointer; transition: all 0.2s;
+    white-space: nowrap;
+  }
+  .tab.active {
+    color: white;
+    border-color: transparent;
+  }
+  .tab[data-cat="all"].active    { background: linear-gradient(135deg,#E8607A,#A070C0); }
+  .tab[data-cat="mental"].active { background: #A070C0; }
+  .tab[data-cat="comm"].active   { background: #4090C8; }
+  .tab[data-cat="habit"].active  { background: #60A878; }
+
+  /* ── Content area ── */
+  .content { padding: 16px; }
+
+  /* ── Section header ── */
+  .section-head {
+    display: flex; align-items: center; gap: 10px;
+    margin: 24px 0 14px; padding-bottom: 10px;
+    border-bottom: 2px dashed;
+  }
+  .section-head .icon {
+    width: 36px; height: 36px; border-radius: 10px;
+    display: flex; align-items: center; justify-content: center;
+    font-size: 18px; flex-shrink: 0;
+  }
+  .section-head h2 { font-size: 17px; font-weight: 900; }
+  .section-head .cnt {
+    margin-left: auto; font-size: 11px; font-weight: 700;
+    padding: 3px 10px; border-radius: 12px;
+  }
+
+  /* ── Library cards (index view) ── */
+  .lib-card {
+    background: white; border-radius: 18px;
+    padding: 16px 18px; margin-bottom: 12px;
+    border: 2px solid; display: flex;
+    align-items: center; gap: 14px;
+    cursor: pointer;
+    transition: transform 0.2s cubic-bezier(.34,1.56,.64,1), box-shadow 0.2s;
+    box-shadow: 0 2px 12px #00000008;
+    position: relative; overflow: hidden;
+  }
+  .lib-card::before {
+    content: ''; position: absolute;
+    top: 0; left: 0; right: 0; height: 4px;
+    background: var(--card-color);
+  }
+  .lib-card:active { transform: scale(0.97); }
+  .lib-card .emoji {
+    width: 48px; height: 48px; border-radius: 14px;
+    display: flex; align-items: center; justify-content: center;
+    font-size: 24px; flex-shrink: 0;
+    background: var(--card-light);
+  }
+  .lib-card .info { flex: 1; min-width: 0; }
+  .lib-card .tag {
+    font-size: 10px; font-weight: 700; letter-spacing: 0.08em;
+    color: var(--card-color); margin-bottom: 3px;
+  }
+  .lib-card .title { font-size: 15px; font-weight: 900; line-height: 1.4; }
+  .lib-card .sub { font-size: 11px; color: var(--mid); margin-top: 3px; line-height: 1.5; }
+  .lib-card .arrow { font-size: 20px; color: var(--card-color); opacity: 0.6; flex-shrink: 0; }
+
+  /* ── Detail view ── */
+  .detail { display: none; }
+  .detail.active { display: block; animation: fadeUp 0.3s ease both; }
+
+  .detail-header {
+    background: white; border-radius: 24px;
+    padding: 28px 22px 24px; margin-bottom: 20px;
+    text-align: center;
+    border: 2.5px solid var(--theme-color, #E0D8F0);
+    box-shadow: 0 4px 24px var(--theme-shadow, #00000012);
+    position: relative; overflow: hidden;
+  }
+  .detail-header::before {
+    content: ''; position: absolute;
+    top: -30px; right: -30px; width: 120px; height: 120px;
+    background: radial-gradient(circle, var(--theme-light, #F0ECF8) 40%, transparent 70%);
+    border-radius: 50%;
+  }
+  .back-btn {
+    display: inline-flex; align-items: center; gap: 5px;
+    font-size: 13px; font-weight: 700; color: var(--mid);
+    background: var(--cream); border: 1.5px solid #E0D8F0;
+    padding: 6px 14px; border-radius: 14px; cursor: pointer;
+    margin-bottom: 16px; transition: all 0.2s;
+  }
+  .back-btn:active { transform: scale(0.96); }
+  .detail-header .badge {
+    display: inline-block;
+    background: var(--theme-color, #A070C0);
+    color: white; font-size: 11px; font-weight: 700;
+    letter-spacing: 0.1em; padding: 5px 16px;
+    border-radius: 16px; margin-bottom: 14px;
+  }
+  .detail-header h2 {
+    font-size: clamp(20px, 5vw, 28px); font-weight: 900;
+    line-height: 1.35; margin-bottom: 10px;
+    color: var(--dark);
+  }
+  .detail-header p { font-size: 13px; color: var(--mid); line-height: 1.7; }
+
+  /* ── Progress bar ── */
+  .prog-wrap {
+    background: white; border-radius: 16px; padding: 14px 18px;
+    margin-bottom: 16px; border: 1.5px solid #EDE8F8;
+  }
+  .prog-label { display: flex; justify-content: space-between; font-size: 12px; font-weight: 700; color: var(--mid); margin-bottom: 8px; }
+  .prog-bar { height: 8px; background: #EDE8F8; border-radius: 8px; overflow: hidden; }
+  .prog-fill { height: 100%; width: 0; border-radius: 8px; transition: width 0.4s cubic-bezier(.34,1.2,.64,1); }
+
+  /* ── Step / pattern cards ── */
+  .item-card {
+    background: white; border-radius: 20px;
+    padding: 18px 18px 16px; margin-bottom: 12px;
+    border: 2px solid var(--item-color, #E0D8F0);
+    box-shadow: 0 3px 16px var(--item-shadow, #00000010);
+    cursor: pointer; position: relative; overflow: hidden;
+    transition: transform 0.2s cubic-bezier(.34,1.56,.64,1);
+    display: flex; gap: 14px; align-items: flex-start;
+  }
+  .item-card::before {
+    content: ''; position: absolute;
+    top: 0; left: 0; bottom: 0; width: 5px;
+    background: var(--item-color, #A070C0);
+  }
+  .item-card:active { transform: scale(0.98); }
+  .item-card.checked { opacity: 0.45; }
+  .item-num {
+    width: 44px; height: 44px; flex-shrink: 0;
+    background: var(--item-color); border-radius: 14px;
+    display: flex; flex-direction: column;
+    align-items: center; justify-content: center;
+    color: white; font-weight: 900; font-family: 'Nunito', sans-serif;
+    font-size: 10px; gap: 0;
+    box-shadow: 0 3px 10px var(--item-shadow);
+    transition: background 0.3s;
+  }
+  .item-num .n { font-size: 18px; line-height: 1; }
+  .item-body { flex: 1; min-width: 0; }
+  .item-title { font-size: 16px; font-weight: 900; margin-bottom: 6px; line-height: 1.3; }
+  .item-desc { font-size: 12px; color: var(--mid); line-height: 1.7; margin-bottom: 10px; }
+  .item-quote {
+    background: var(--item-light, #F0ECF8);
+    border-left: 3px solid var(--item-color);
+    padding: 8px 12px; border-radius: 0 10px 10px 0;
+    font-size: 12px; color: var(--dark); line-height: 1.6;
+  }
+  .check-dot {
+    width: 28px; height: 28px; flex-shrink: 0;
+    border: 2px solid var(--item-color); border-radius: 50%;
+    display: flex; align-items: center; justify-content: center;
+    font-size: 14px; background: white; align-self: center;
+    transition: all 0.2s; color: transparent;
+  }
+  .item-card.checked .check-dot {
+    background: var(--item-color); color: white;
+  }
+  .item-card.checked .item-num { background: #C8C0D8; box-shadow: none; }
+
+  /* ── Footer card ── */
+  .footer-card {
+    text-align: center; padding: 28px 20px;
+    border-radius: 24px; margin-top: 8px;
+  }
+  .footer-card h3 { font-size: 18px; font-weight: 900; margin-bottom: 8px; }
+  .footer-card p { font-size: 13px; color: var(--mid); line-height: 1.75; }
+  .score-grid {
+    display: grid; grid-template-columns: repeat(2, 1fr);
+    gap: 8px; margin-top: 16px;
+  }
+  .score-pill {
+    padding: 10px 8px; border-radius: 12px;
+    font-size: 12px; font-weight: 700; line-height: 1.5;
+    color: var(--dark);
+  }
+
+  /* ── Bottom nav ── */
+  .bottom-nav {
+    position: fixed; bottom: 0; left: 0; right: 0; z-index: 200;
+    background: rgba(250,250,245,0.95);
+    backdrop-filter: blur(16px); -webkit-backdrop-filter: blur(16px);
+    border-top: 1.5px solid #EDE8F8;
+    display: flex; padding: 8px 0 calc(8px + env(safe-area-inset-bottom));
+  }
+  .nav-item {
+    flex: 1; display: flex; flex-direction: column;
+    align-items: center; gap: 3px;
+    font-size: 10px; font-weight: 700; color: var(--mid);
+    cursor: pointer; padding: 4px 0;
+    transition: color 0.2s;
+  }
+  .nav-item .nav-icon { font-size: 22px; line-height: 1; }
+  .nav-item.active { color: #A070C0; }
+
+  @keyframes fadeUp {
+    from { opacity: 0; transform: translateY(16px); }
+    to   { opacity: 1; transform: translateY(0); }
+  }
+
+  /* hide/show screens */
+  .screen { display: none; }
+  .screen.active { display: block; animation: fadeUp 0.3s ease both; }
+</style>
+
+<style>
+  #lock-screen {
+    position: fixed; inset: 0; z-index: 9999;
+    background: #FAFAF5;
+    display: flex; flex-direction: column;
+    align-items: center; justify-content: center;
+    font-family: 'Zen Maru Gothic', sans-serif;
+    padding: 32px;
+  }
+  #lock-screen .lock-icon { font-size: 52px; margin-bottom: 20px; }
+  #lock-screen h2 {
+    font-size: 22px; font-weight: 900; color: #3D3550;
+    margin-bottom: 8px;
+  }
+  #lock-screen p { font-size: 13px; color: #8A80A0; margin-bottom: 28px; }
+  #pw-input {
+    width: 100%; max-width: 280px;
+    padding: 14px 18px; font-size: 26px;
+    border: 2.5px solid #D8C8F0; border-radius: 16px;
+    background: white; color: #3D3550;
+    text-align: center; letter-spacing: 0.3em;
+    outline: none; margin-bottom: 16px;
+    font-family: 'Nunito', sans-serif;
+    box-sizing: border-box;
+  }
+  #pw-input:focus { border-color: #A070C0; }
+  #pw-btn {
+    width: 100%; max-width: 280px;
+    padding: 14px; font-size: 16px; font-weight: 900;
+    background: linear-gradient(135deg, #A070C0, #4090C8);
+    color: white; border: none; border-radius: 16px;
+    cursor: pointer; font-family: 'Zen Maru Gothic', sans-serif;
+  }
+  #pw-error {
+    color: #E85070; font-size: 13px; margin-top: 12px;
+    display: none;
+  }
+</style>
+</head>
+<body>
+
+<!-- Lock screen -->
+<div id="lock-screen">
+  <div class="lock-icon">🔒</div>
+  <h2>マイ学習ライブラリ</h2>
+  <p>パスワードを入力してください</p>
+  <input type="password" id="pw-input" placeholder="••••" maxlength="10"
+    onkeydown="if(event.key==='Enter')checkPw()">
+  <button id="pw-btn" onclick="checkPw()">ひらく</button>
+  <div id="pw-error">パスワードが違います 🔑</div>
+</div>
+
+<script>
+  (function() {
+    if (sessionStorage.getItem('auth') === 'ok') {
+      document.getElementById('lock-screen').style.display = 'none';
+    }
+  })();
+  function checkPw() {
+    const val = document.getElementById('pw-input').value;
+    if (val === '3609') {
+      sessionStorage.setItem('auth', 'ok');
+      document.getElementById('lock-screen').style.display = 'none';
+    } else {
+      document.getElementById('pw-error').style.display = 'block';
+      document.getElementById('pw-input').value = '';
+      document.getElementById('pw-input').focus();
+    }
+  }
+</script>
+
+<!-- Top bar -->
+<div class="topbar">
+  <h1>📚 マイ学習ライブラリ</h1>
+  <p>自分を成長させるコンテンツをまとめました</p>
+</div>
+
+<!-- ════════════════════════════════
+     SCREEN: ライブラリ (index)
+════════════════════════════════ -->
+<div class="screen active" id="screen-library">
+
+  <!-- Category tabs -->
+  <div class="tabs">
+    <div class="tab active" data-cat="all" onclick="filterCat('all', this)">すべて</div>
+    <div class="tab" data-cat="mental" onclick="filterCat('mental', this)">🧠 メンタル</div>
+    <div class="tab" data-cat="comm" onclick="filterCat('comm', this)">💬 コミュニケーション</div>
+    <div class="tab" data-cat="habit" onclick="filterCat('habit', this)">🌱 習慣・行動</div>
+  </div>
+
+  <div class="content">
+
+    <!-- メンタル section -->
+    <div class="section-wrap" data-cat="mental">
+      <div class="section-head" style="border-color:#C4A8DC; color:#A070C0;">
+        <div class="icon" style="background:#F0E8FF;">🧠</div>
+        <h2>メンタル</h2>
+        <div class="cnt" style="background:#F0E8FF; color:#A070C0;">5件</div>
+      </div>
+
+      <div class="lib-card" style="--card-color:#A070C0;--card-light:#F0E8FF; border-color:#D8C8F0;"
+           onclick="showDetail('fukanzenshugi')">
+        <div class="emoji">🌸</div>
+        <div class="info">
+          <div class="tag">メンタル</div>
+          <div class="title">不完全主義〜不完全を受け入れれば人生はうまくいく</div>
+          <div class="sub">80点主義・弱みをオープンに・瞑想など 5ステップ</div>
+        </div>
+        <div class="arrow">›</div>
+      </div>
+
+      <div class="lib-card" style="--card-color:#A070C0;--card-light:#F0E8FF; border-color:#D8C8F0;"
+           onclick="showDetail('mindset')">
+        <div class="emoji">💪</div>
+        <div class="info">
+          <div class="tag">メンタル</div>
+          <div class="title">体も脳も成長させるマインドセット</div>
+          <div class="sub">過去の自分と比較・小さな成長・格闘技など 5ステップ</div>
+        </div>
+        <div class="arrow">›</div>
+      </div>
+
+      <div class="lib-card" style="--card-color:#A070C0;--card-light:#F0E8FF; border-color:#D8C8F0;"
+           onclick="showDetail('negative')">
+        <div class="emoji">🛠️</div>
+        <div class="info">
+          <div class="tag">メンタル</div>
+          <div class="title">ネガティブな感情を道具として捉え活用する</div>
+          <div class="sub">感情を道具として使う・名前をつける・キャラクター化</div>
+        </div>
+        <div class="arrow">›</div>
+      </div>
+
+      <div class="lib-card" style="--card-color:#A070C0;--card-light:#F0E8FF; border-color:#D8C8F0;"
+           onclick="showDetail('taseki')">
+        <div class="emoji">🧭</div>
+        <div class="info">
+          <div class="tag">メンタル</div>
+          <div class="title">他責思考を乗り越えて自分の人生を取り戻す</div>
+          <div class="sub">言い訳センサー・帰属再訓練・If-Thenルールなど 5ステップ</div>
+        </div>
+        <div class="arrow">›</div>
+      </div>
+
+      <div class="lib-card" style="--card-color:#A070C0;--card-light:#F0E8FF; border-color:#D8C8F0;"
+           onclick="showDetail('hikaku')">
+        <div class="emoji">💗</div>
+        <div class="info">
+          <div class="tag">メンタル</div>
+          <div class="title">比較癖の直し方〜ハーバード式セルフコンパッション</div>
+          <div class="sub">フレンドトレーニング・スングタッチ・デイリーマインドフルネスなど 6ステップ</div>
+        </div>
+        <div class="arrow">›</div>
+      </div>
+    </div>
+
+    <!-- コミュニケーション section -->
+    <div class="section-wrap" data-cat="comm">
+      <div class="section-head" style="border-color:#90C4E8; color:#4090C8;">
+        <div class="icon" style="background:#D8EEF9;">💬</div>
+        <h2>コミュニケーション</h2>
+        <div class="cnt" style="background:#D8EEF9; color:#4090C8;">4件</div>
+      </div>
+
+      <div class="lib-card" style="--card-color:#4090C8;--card-light:#D8EEF9; border-color:#B0D8F0;"
+           onclick="showDetail('zannen')">
+        <div class="emoji">🗣️</div>
+        <div class="info">
+          <div class="tag">コミュニケーション</div>
+          <div class="title">残念な会話パターン10選</div>
+          <div class="sub">空想・議論・判断など10の悪いクセをセルフチェック</div>
+        </div>
+        <div class="arrow">›</div>
+      </div>
+
+      <div class="lib-card" style="--card-color:#4090C8;--card-light:#D8EEF9; border-color:#B0D8F0;"
+           onclick="showDetail('golden')">
+        <div class="emoji">✨</div>
+        <div class="info">
+          <div class="tag">コミュニケーション</div>
+          <div class="title">雑談が上手くなる3つの黄金ルール</div>
+          <div class="sub">聞く・話す割合 / 30秒以内 / 1秒の間</div>
+        </div>
+        <div class="arrow">›</div>
+      </div>
+
+      <div class="lib-card" style="--card-color:#4090C8;--card-light:#D8EEF9; border-color:#B0D8F0;"
+           onclick="showDetail('starter')">
+        <div class="emoji">💬</div>
+        <div class="info">
+          <div class="tag">コミュニケーション</div>
+          <div class="title">話題を広げる7つの会話スターター</div>
+          <div class="sub">感情が乗る雑談を引き出す7つのネタ</div>
+        </div>
+        <div class="arrow">›</div>
+      </div>
+
+      <div class="lib-card" style="--card-color:#4090C8;--card-light:#D8EEF9; border-color:#B0D8F0;"
+           onclick="showDetail('networking')">
+        <div class="emoji">🤝</div>
+        <div class="info">
+          <div class="tag">コミュニケーション</div>
+          <div class="title">コミュ障でもできるネットワーキング</div>
+          <div class="sub">共通点・ミミキング・5分ルール・関係管理など 8テクニック</div>
+        </div>
+        <div class="arrow">›</div>
+      </div>
+    </div>
+
+    <!-- 習慣・行動 section -->
+    <div class="section-wrap" data-cat="habit">
+      <div class="section-head" style="border-color:#A8D5B0; color:#60A878;">
+        <div class="icon" style="background:#DFF2E3;">🌱</div>
+        <h2>習慣・行動</h2>
+        <div class="cnt" style="background:#DFF2E3; color:#60A878;">1件</div>
+      </div>
+
+      <div class="lib-card" style="--card-color:#60A878;--card-light:#DFF2E3; border-color:#A8D5B0;"
+           onclick="showDetail('mendokusai')">
+        <div class="emoji">⚡</div>
+        <div class="info">
+          <div class="tag">習慣・行動</div>
+          <div class="title">めんどくさがり克服8ステップ</div>
+          <div class="sub">ポジティブ記録・強みを活かす・目標設定など</div>
+        </div>
+        <div class="arrow">›</div>
+      </div>
+    </div>
+
+  </div>
+</div>
+
+
+<!-- ════════════════════════════════
+     SCREEN: 不完全主義
+════════════════════════════════ -->
+<div class="screen" id="screen-fukanzenshugi">
+<div class="content" style="--theme-color:#A070C0;--theme-light:#F0E8FF;--theme-shadow:#C4A8DC33;">
+
+  <div class="detail-header" style="--theme-color:#A070C0;--theme-light:#F0E8FF;--theme-shadow:#C4A8DC22; border-color:#D8C8F0;">
+    <div onclick="showLibrary()" class="back-btn">← ライブラリ</div>
+    <div class="badge" style="background:#A070C0;">🌸 5 STEPS</div>
+    <h2>不完全主義<br>〜不完全を受け入れれば<br>人生はうまくいく〜</h2>
+    <p>完璧を手放し、不完全な自分を認めることで<br>挑戦への恐れを減らし豊かな人生へ</p>
+  </div>
+
+  <div class="prog-wrap">
+    <div class="prog-label"><span>チェック済み</span><span id="fk-prog-text">0 / 5</span></div>
+    <div class="prog-bar"><div class="prog-fill" id="fk-prog" style="background:linear-gradient(90deg,#A070C0,#E8607A);"></div></div>
+  </div>
+
+  <div id="fk-items">
+    <div class="item-card" style="--item-color:#E0A0B8;--item-light:#FDE8ED;--item-shadow:#F9C0CB33" onclick="toggleItem(this,'fk',5)">
+      <div class="item-num"><span class="n">①</span></div>
+      <div class="item-body">
+        <div class="item-title">80点主義を意識する</div>
+        <div class="item-desc">100点満点を目指さず、80点でOKと考えよう。気軽にスタートできてストレスも減る。</div>
+        <div class="item-quote">💡 「80点で十分！」が合言葉</div>
+      </div>
+      <div class="check-dot">✓</div>
+    </div>
+    <div class="item-card" style="--item-color:#8090C8;--item-light:#D8EEF9;--item-shadow:#90C4E833" onclick="toggleItem(this,'fk',5)">
+      <div class="item-num"><span class="n">②</span></div>
+      <div class="item-body">
+        <div class="item-title">弱みをオープンにする</div>
+        <div class="item-desc">自分の弱みを隠さず見せてみよう。相手も心を開きやすくなり深い人間関係が生まれる。</div>
+        <div class="item-quote">💡 弱みを見せることが信頼につながる</div>
+      </div>
+      <div class="check-dot">✓</div>
+    </div>
+    <div class="item-card" style="--item-color:#70B880;--item-light:#DFF2E3;--item-shadow:#A8D5B033" onclick="toggleItem(this,'fk',5)">
+      <div class="item-num"><span class="n">③</span></div>
+      <div class="item-body">
+        <div class="item-title">失敗体験を共有する</div>
+        <div class="item-desc">失敗をオープンに話してみよう。共感やアドバイスをもらえたり、自分自身も心の余裕が生まれる。</div>
+        <div class="item-quote">💡 失敗話は共感を生む最強ネタ</div>
+      </div>
+      <div class="check-dot">✓</div>
+    </div>
+    <div class="item-card" style="--item-color:#9878C0;--item-light:#EDE0F7;--item-shadow:#C4A8DC33" onclick="toggleItem(this,'fk',5)">
+      <div class="item-num"><span class="n">④</span></div>
+      <div class="item-body">
+        <div class="item-title">マインドフルネス瞑想を実践する</div>
+        <div class="item-desc">1日5分でも瞑想を続けよう。心が落ち着き、ネガティブな感情に振り回されにくくなる。</div>
+        <div class="item-quote">💡 まず5分、目を閉じて呼吸に集中</div>
+      </div>
+      <div class="check-dot">✓</div>
+    </div>
+    <div class="item-card" style="--item-color:#D89050;--item-light:#FDEBD8;--item-shadow:#F8B98A33" onclick="toggleItem(this,'fk',5)">
+      <div class="item-num"><span class="n">⑤</span></div>
+      <div class="item-body">
+        <div class="item-title">行動目標を立てて集中する</div>
+        <div class="item-desc">具体的な行動目標を設定し、行動に集中しよう。着実な成長が自信につながる。</div>
+        <div class="item-quote">💡 「何をするか」だけを決めて動く</div>
+      </div>
+      <div class="check-dot">✓</div>
+    </div>
+  </div>
+
+  <div class="footer-card" style="background:linear-gradient(135deg,#EDE0F7,#FDE8ED);">
+    <h3 id="fk-footer">不完全な自分を受け入れよう！</h3>
+    <p>焦らず少しずつ、自分らしく生きる 🌸</p>
+  </div>
+</div>
+</div>
+
+
+<!-- ════════════════════════════════
+     SCREEN: マインドセット
+════════════════════════════════ -->
+<div class="screen" id="screen-mindset">
+<div class="content">
+
+  <div class="detail-header" style="--theme-color:#A070C0;--theme-light:#F0E8FF; border-color:#D8C8F0;">
+    <div onclick="showLibrary()" class="back-btn">← ライブラリ</div>
+    <div class="badge" style="background:linear-gradient(135deg,#60A878,#A070C0);">💪 5 STEPS</div>
+    <h2>体も脳も成長させる<br>マインドセット</h2>
+    <p>体と脳を同時に鍛える実践ステップガイド</p>
+  </div>
+
+  <div class="prog-wrap">
+    <div class="prog-label"><span>チェック済み</span><span id="ms-prog-text">0 / 5</span></div>
+    <div class="prog-bar"><div class="prog-fill" id="ms-prog" style="background:linear-gradient(90deg,#60A878,#C8D840);"></div></div>
+  </div>
+
+  <div id="ms-items">
+    <div class="item-card" style="--item-color:#E0A0B8;--item-light:#FDE8ED;--item-shadow:#F9C0CB33" onclick="toggleItem(this,'ms',5)">
+      <div class="item-num"><span class="n">①</span></div>
+      <div class="item-body">
+        <div class="item-title">過去の自分と比較する</div>
+        <div class="item-desc">他人と比べるのをやめ、「過去の自分」と比較しよう。成長はじぶんのペースで実感できる。</div>
+        <div class="item-quote">💡 比べる相手は昨日の自分だけ</div>
+      </div>
+      <div class="check-dot">✓</div>
+    </div>
+    <div class="item-card" style="--item-color:#8090C8;--item-light:#D8EEF9;--item-shadow:#90C4E833" onclick="toggleItem(this,'ms',5)">
+      <div class="item-num"><span class="n">②</span></div>
+      <div class="item-body">
+        <div class="item-title">「できること」に目を向ける</div>
+        <div class="item-desc">できないことより「できること」に注目しよう。積み重ねが自信につながる。</div>
+        <div class="item-quote">💡 今日できた小さなことを1つ見つける</div>
+      </div>
+      <div class="check-dot">✓</div>
+    </div>
+    <div class="item-card" style="--item-color:#70B880;--item-light:#DFF2E3;--item-shadow:#A8D5B033" onclick="toggleItem(this,'ms',5)">
+      <div class="item-num"><span class="n">③</span></div>
+      <div class="item-body">
+        <div class="item-title">小さな成長を見つけ継続する</div>
+        <div class="item-desc">昨日より少しだけ成長できた！そんな小さな気づきを大切に。継続が最大の力になる。</div>
+        <div class="item-quote">💡 0.1%の成長でも積み重ねれば大きくなる</div>
+      </div>
+      <div class="check-dot">✓</div>
+    </div>
+    <div class="item-card" style="--item-color:#D89050;--item-light:#FDEBD8;--item-shadow:#F8B98A33" onclick="toggleItem(this,'ms',5)">
+      <div class="item-num"><span class="n">④</span></div>
+      <div class="item-body">
+        <div class="item-title">課題を発見し改善する</div>
+        <div class="item-desc">思考実験として課題を探そう。「なぜうまくいかないか」を考え改善を繰り返すことで成長できる。</div>
+        <div class="item-quote">💡 失敗したら「なぜ？」と1回だけ問う</div>
+      </div>
+      <div class="check-dot">✓</div>
+    </div>
+    <div class="item-card" style="--item-color:#9878C0;--item-light:#EDE0F7;--item-shadow:#C4A8DC33" onclick="toggleItem(this,'ms',5)">
+      <div class="item-num"><span class="n">⑤</span></div>
+      <div class="item-body">
+        <div class="item-title">格闘技・武道でメンタルを鍛える</div>
+        <div class="item-desc">新しい挑戦でメンタルを強化！柔術など始めやすい武道で心と体を同時に鍛えよう。</div>
+        <div class="item-quote">💡 体を動かすことが脳も鍛える</div>
+      </div>
+      <div class="check-dot">✓</div>
+    </div>
+  </div>
+
+  <div class="footer-card" style="background:linear-gradient(135deg,#DFF2E3,#FBF2CC);">
+    <h3 id="ms-footer">体と脳を同時に鍛えよう！</h3>
+    <p>小さな一歩が大きな成長へ ⭐</p>
+  </div>
+</div>
+</div>
+
+
+<!-- ════════════════════════════════
+     SCREEN: 残念な会話パターン
+════════════════════════════════ -->
+<div class="screen" id="screen-zannen">
+<div class="content">
+
+  <div class="detail-header" style="border-color:#B0D8F0;">
+    <div onclick="showLibrary()" class="back-btn">← ライブラリ</div>
+    <div class="badge" style="background:#4090C8;">⚠ 10 PATTERNS</div>
+    <h2>残念な会話パターン<br>10選</h2>
+    <p>あなたはいくつ当てはまる？<br>タップしてセルフチェック</p>
+  </div>
+
+  <div class="prog-wrap">
+    <div class="prog-label"><span>当てはまった数</span><span id="zn-prog-text">0 / 10</span></div>
+    <div class="prog-bar"><div class="prog-fill" id="zn-prog" style="background:linear-gradient(90deg,#4090C8,#A070C0);"></div></div>
+  </div>
+
+  <div id="zn-items">
+    <div class="item-card" style="--item-color:#E0A0B8;--item-light:#FDE8ED;--item-shadow:#F9C0CB33" onclick="toggleItem(this,'zn',10)">
+      <div class="item-num"><span class="n">①</span></div>
+      <div class="item-body">
+        <div class="item-title">空想</div>
+        <div class="item-desc">相手の話と関係ないことを考えている</div>
+        <div class="item-quote">「あ、晩ごはん何にしようかな…」</div>
+      </div>
+      <div class="check-dot">✓</div>
+    </div>
+    <div class="item-card" style="--item-color:#E89860;--item-light:#FDEBD8;--item-shadow:#F8B98A33" onclick="toggleItem(this,'zn',10)">
+      <div class="item-num"><span class="n">②</span></div>
+      <div class="item-body">
+        <div class="item-title">議論</div>
+        <div class="item-desc">心の中だけで相手に反論している</div>
+        <div class="item-quote">「いや絶対違う！（でも言わない）」</div>
+      </div>
+      <div class="check-dot">✓</div>
+    </div>
+    <div class="item-card" style="--item-color:#70B880;--item-light:#DFF2E3;--item-shadow:#A8D5B033" onclick="toggleItem(this,'zn',10)">
+      <div class="item-num"><span class="n">③</span></div>
+      <div class="item-body">
+        <div class="item-title">判断</div>
+        <div class="item-desc">ネガティブ思考で相手の意見を判断する</div>
+        <div class="item-quote">「どうせまた同じ話でしょ」</div>
+      </div>
+      <div class="check-dot">✓</div>
+    </div>
+    <div class="item-card" style="--item-color:#5098C8;--item-light:#D8EEF9;--item-shadow:#90C4E833" onclick="toggleItem(this,'zn',10)">
+      <div class="item-num"><span class="n">④</span></div>
+      <div class="item-body">
+        <div class="item-title">問題解決</div>
+        <div class="item-desc">求めてもいないのにアドバイスしようとする</div>
+        <div class="item-quote">「それはね！こうすればいいよ！」</div>
+      </div>
+      <div class="check-dot">✓</div>
+    </div>
+    <div class="item-card" style="--item-color:#9878C0;--item-light:#EDE0F7;--item-shadow:#C4A8DC33" onclick="toggleItem(this,'zn',10)">
+      <div class="item-num"><span class="n">⑤</span></div>
+      <div class="item-body">
+        <div class="item-title">偽傾聴</div>
+        <div class="item-desc">本当は聞いていないのにあいづちだけ打つ</div>
+        <div class="item-quote">「うんうん…（全然聞いてない）」</div>
+      </div>
+      <div class="check-dot">✓</div>
+    </div>
+    <div class="item-card" style="--item-color:#C8A030;--item-light:#FBF2CC;--item-shadow:#F0D08033" onclick="toggleItem(this,'zn',10)">
+      <div class="item-num"><span class="n">⑥</span></div>
+      <div class="item-body">
+        <div class="item-title">リハーサル</div>
+        <div class="item-desc">次に話したい内容を考えてしまっている</div>
+        <div class="item-quote">「次は私のあの話をしよう！」</div>
+      </div>
+      <div class="check-dot">✓</div>
+    </div>
+    <div class="item-card" style="--item-color:#50A898;--item-light:#D0F0EC;--item-shadow:#90D0C833" onclick="toggleItem(this,'zn',10)">
+      <div class="item-num"><span class="n">⑦</span></div>
+      <div class="item-body">
+        <div class="item-title">独占</div>
+        <div class="item-desc">自分の目標のために会話の流れを変える</div>
+        <div class="item-quote">「よし、話を変えちゃおう」</div>
+      </div>
+      <div class="check-dot">✓</div>
+    </div>
+    <div class="item-card" style="--item-color:#C85858;--item-light:#FAD8D8;--item-shadow:#F0909033" onclick="toggleItem(this,'zn',10)">
+      <div class="item-num"><span class="n">⑧</span></div>
+      <div class="item-body">
+        <div class="item-title">不意打ち</div>
+        <div class="item-desc">相手に対抗するための情報を集めている</div>
+        <div class="item-quote">「あとでこれを使ってやる…」</div>
+      </div>
+      <div class="check-dot">✓</div>
+    </div>
+    <div class="item-card" style="--item-color:#4888B8;--item-light:#D0E8F5;--item-shadow:#88B8D833" onclick="toggleItem(this,'zn',10)">
+      <div class="item-num"><span class="n">⑨</span></div>
+      <div class="item-body">
+        <div class="item-title">選択的傾聴</div>
+        <div class="item-desc">自分が興味のある話題にだけ反応する</div>
+        <div class="item-quote">「それは聞く！他はどうでもいい」</div>
+      </div>
+      <div class="check-dot">✓</div>
+    </div>
+    <div class="item-card" style="--item-color:#A07840;--item-light:#F0E4D0;--item-shadow:#C8A88033" onclick="toggleItem(this,'zn',10)">
+      <div class="item-num"><span class="n">⑩</span></div>
+      <div class="item-body">
+        <div class="item-title">防衛的傾聴</div>
+        <div class="item-desc">相手の話が批判だと思いながら聞く</div>
+        <div class="item-quote">「もしかして私のこと…？」</div>
+      </div>
+      <div class="check-dot">✓</div>
+    </div>
+  </div>
+
+  <div class="footer-card" style="background:linear-gradient(135deg,#D8EEF9,#EDE0F7);">
+    <h3 id="zn-footer">何個当てはまった？</h3>
+    <div class="score-grid">
+      <div class="score-pill" style="background:#DFF2E3;">0〜2個<br>聞き上手！🌟</div>
+      <div class="score-pill" style="background:#FBF2CC;">3〜5個<br>要注意 ⚠️</div>
+      <div class="score-pill" style="background:#FDEBD8;">6〜8個<br>かなり残念😅</div>
+      <div class="score-pill" style="background:#FAD8D8;">9〜10個<br>要改善！🔥</div>
+    </div>
+  </div>
+</div>
+</div>
+
+
+<!-- ════════════════════════════════
+     SCREEN: めんどくさがり克服
+════════════════════════════════ -->
+<div class="screen" id="screen-mendokusai">
+<div class="content">
+
+  <div class="detail-header" style="border-color:#A8D5B0;">
+    <div onclick="showLibrary()" class="back-btn">← ライブラリ</div>
+    <div class="badge" style="background:#60A878;">⚡ 8 STEPS</div>
+    <h2>めんどくさがり克服<br>8ステップ</h2>
+    <p>小さな一歩が、大きな変化につながる</p>
+  </div>
+
+  <div class="prog-wrap">
+    <div class="prog-label"><span>完了したステップ</span><span id="mk-prog-text">0 / 8</span></div>
+    <div class="prog-bar"><div class="prog-fill" id="mk-prog" style="background:linear-gradient(90deg,#70B880,#C8D840);"></div></div>
+  </div>
+
+  <div id="mk-items">
+    <div class="item-card" style="--item-color:#E8A0B8;--item-light:#FDE8ED;--item-shadow:#F9C0CB33" onclick="toggleItem(this,'mk',8)">
+      <div class="item-num"><span class="n">①</span></div>
+      <div class="item-body">
+        <div class="item-title">ポジティブなことを記録する</div>
+        <div class="item-desc">毎日、良かったことをノートに書こう。記録することで自分のポジティブな側面に気づける。</div>
+        <div class="item-quote">💡 毎晩「今日良かったこと」を3つ書く</div>
+      </div>
+      <div class="check-dot">✓</div>
+    </div>
+    <div class="item-card" style="--item-color:#90C4E8;--item-light:#D8EEF9;--item-shadow:#90C4E833" onclick="toggleItem(this,'mk',8)">
+      <div class="item-num"><span class="n">②</span></div>
+      <div class="item-body">
+        <div class="item-title">感謝日記を書く</div>
+        <div class="item-desc">感謝したことを日記に綴ろう。感謝の習慣が前向きな思考を育てる。</div>
+        <div class="item-quote">💡 「今日ありがとうと思ったこと」を1つ書く</div>
+      </div>
+      <div class="check-dot">✓</div>
+    </div>
+    <div class="item-card" style="--item-color:#70B880;--item-light:#DFF2E3;--item-shadow:#A8D5B033" onclick="toggleItem(this,'mk',8)">
+      <div class="item-num"><span class="n">③</span></div>
+      <div class="item-body">
+        <div class="item-title">自分の強みを活かす</div>
+        <div class="item-desc">得意なことを意識して使おう。強みを活かすことで自信がつき行動へのハードルが下がる。</div>
+        <div class="item-quote">💡 「自分の得意なこと」を3つ書き出す</div>
+      </div>
+      <div class="check-dot">✓</div>
+    </div>
+    <div class="item-card" style="--item-color:#C09840;--item-light:#FBF2CC;--item-shadow:#F0D08033" onclick="toggleItem(this,'mk',8)">
+      <div class="item-num"><span class="n">④</span></div>
+      <div class="item-body">
+        <div class="item-title">簡単な目標を設定する</div>
+        <div class="item-desc">小さな目標を立てて実行しよう。まず「5分だけやる」から始めてOK。</div>
+        <div class="item-quote">💡 今日やる1つのことを朝に決める</div>
+      </div>
+      <div class="check-dot">✓</div>
+    </div>
+    <div class="item-card" style="--item-color:#F09870;--item-light:#FDEBD8;--item-shadow:#F8B98A33" onclick="toggleItem(this,'mk',8)">
+      <div class="item-num"><span class="n">⑤</span></div>
+      <div class="item-body">
+        <div class="item-title">親切な行動をする</div>
+        <div class="item-desc">一日一善で心を温かくしよう。小さな親切が自己肯定感を高める。</div>
+        <div class="item-quote">💡 今日誰かに親切にできることを1つやる</div>
+      </div>
+      <div class="check-dot">✓</div>
+    </div>
+    <div class="item-card" style="--item-color:#9870C0;--item-light:#EDE0F7;--item-shadow:#C4A8DC33" onclick="toggleItem(this,'mk',8)">
+      <div class="item-num"><span class="n">⑥</span></div>
+      <div class="item-body">
+        <div class="item-title">集中力を保つ</div>
+        <div class="item-desc">気になる事をメモして切り替えよう。頭がスッキリし今やることに集中できる。</div>
+        <div class="item-quote">💡 気が散ったらメモして「あとで考える」</div>
+      </div>
+      <div class="check-dot">✓</div>
+    </div>
+    <div class="item-card" style="--item-color:#50A8A0;--item-light:#D0F0EC;--item-shadow:#90D0C833" onclick="toggleItem(this,'mk',8)">
+      <div class="item-num"><span class="n">⑦</span></div>
+      <div class="item-body">
+        <div class="item-title">未来を具体的に想像する</div>
+        <div class="item-desc">行動した未来をリアルにイメージしよう。「やったあとの自分」を思い描くことで動機が生まれる。</div>
+        <div class="item-quote">💡 「終わったらどんな気持ちか」を想像してから始める</div>
+      </div>
+      <div class="check-dot">✓</div>
+    </div>
+    <div class="item-card" style="--item-color:#C87858;--item-light:#FAD8D8;--item-shadow:#F0909033" onclick="toggleItem(this,'mk',8)">
+      <div class="item-num"><span class="n">⑧</span></div>
+      <div class="item-body">
+        <div class="item-title">過去の経験を活かす</div>
+        <div class="item-desc">過去の教訓を今に活かそう。失敗も成功も全部が自分の財産。</div>
+        <div class="item-quote">💡 うまくいった経験を思い出して今日に応用する</div>
+      </div>
+      <div class="check-dot">✓</div>
+    </div>
+  </div>
+
+  <div class="footer-card" style="background:linear-gradient(135deg,#DFF2E3,#FBF2CC);">
+    <h3 id="mk-footer">自分を大切に、コツコツ実践 ♪</h3>
+    <p>焦らず少しずつ。自信をつけて、めんどくさがり脱出！</p>
+  </div>
+</div>
+</div>
+
+
+<!-- ════════════════════════════════
+     SCREEN: ネガティブな感情
+════════════════════════════════ -->
+<div class="screen" id="screen-negative">
+<div class="content">
+  <div class="detail-header" style="border-color:#D8C8F0;">
+    <div onclick="showLibrary()" class="back-btn">← ライブラリ</div>
+    <div class="badge" style="background:#A070C0;">🛠 6 POINTS</div>
+    <h2>ネガティブな感情を<br>道具として捉え活用する</h2>
+    <p>感情は「感じるもの」から「使うもの」へ</p>
+  </div>
+  <div class="prog-wrap">
+    <div class="prog-label"><span>チェック済み</span><span id="ng-prog-text">0 / 6</span></div>
+    <div class="prog-bar"><div class="prog-fill" id="ng-prog" style="background:linear-gradient(90deg,#9878C0,#E8607A);"></div></div>
+  </div>
+  <div id="ng-items">
+    <div class="item-card" style="--item-color:#9878C0;--item-light:#EDE0F7;--item-shadow:#C4A8DC33" onclick="toggleItem(this,'ng',6)">
+      <div class="item-num"><span class="n">🛠</span></div>
+      <div class="item-body">
+        <div class="item-title">感情を「道具」として使う</div>
+        <div class="item-desc">ネガティブな感情は人類が進化で獲得した力。必ず何かの役に立つ。</div>
+        <div class="item-quote">💡 感情を「道具ツールキット」として捉える</div>
+      </div>
+      <div class="check-dot">✓</div>
+    </div>
+    <div class="item-card" style="--item-color:#C85888;--item-light:#FDE8ED;--item-shadow:#F9C0CB33" onclick="toggleItem(this,'ng',6)">
+      <div class="item-num"><span class="n">🏷</span></div>
+      <div class="item-body">
+        <div class="item-title">感情に「名前」をつける</div>
+        <div class="item-desc">第1位のテクニック。名前をつけることでネガティブな感情と一瞬で距離を置ける。</div>
+        <div class="item-quote">💡 「これは不安という道具だ」と名付ける</div>
+      </div>
+      <div class="check-dot">✓</div>
+    </div>
+    <div class="item-card" style="--item-color:#5098C8;--item-light:#D8EEF9;--item-shadow:#90C4E833" onclick="toggleItem(this,'ng',6)">
+      <div class="item-num"><span class="n">💡</span></div>
+      <div class="item-body">
+        <div class="item-title">「これは道具だ」と考える</div>
+        <div class="item-desc">感じた時に「これは道具だ」「どう使うか」と考えると一歩引いて向き合える。</div>
+        <div class="item-quote">💡 感情に飲まれる前に「使い道は？」と問う</div>
+      </div>
+      <div class="check-dot">✓</div>
+    </div>
+    <div class="item-card" style="--item-color:#70B880;--item-light:#DFF2E3;--item-shadow:#A8D5B033" onclick="toggleItem(this,'ng',6)">
+      <div class="item-num"><span class="n">🎭</span></div>
+      <div class="item-body">
+        <div class="item-title">感情をキャラクター化する</div>
+        <div class="item-desc">避けるのではなくキャラクター化することで自分から切り離しコントロール可能に。</div>
+        <div class="item-quote">💡 「焦りくん」「怒りちゃん」と名付けてみる</div>
+      </div>
+      <div class="check-dot">✓</div>
+    </div>
+    <div class="item-card" style="--item-color:#C09840;--item-light:#FBF2CC;--item-shadow:#F0D08033" onclick="toggleItem(this,'ng',6)">
+      <div class="item-num"><span class="n">🔍</span></div>
+      <div class="item-body">
+        <div class="item-title">感情を客観視する</div>
+        <div class="item-desc">感情を客観視し、飲まれないようにするために「道具として扱う」視点が有効。</div>
+        <div class="item-quote">💡 「今私は〇〇を感じている」と観察者になる</div>
+      </div>
+      <div class="check-dot">✓</div>
+    </div>
+    <div class="item-card" style="--item-color:#E89860;--item-light:#FDEBD8;--item-shadow:#F8B98A33" onclick="toggleItem(this,'ng',6)">
+      <div class="item-num"><span class="n">🌱</span></div>
+      <div class="item-body">
+        <div class="item-title">ネガティブをまず受け入れる</div>
+        <div class="item-desc">ポジティブになろうと頑張るより、まずネガティブを受け入れ認めることがコントロールへの第一歩。</div>
+        <div class="item-quote">💡 「感じていい。でも流されない」</div>
+      </div>
+      <div class="check-dot">✓</div>
+    </div>
+  </div>
+  <div class="footer-card" style="background:linear-gradient(135deg,#EDE0F7,#D8EEF9);">
+    <h3 id="ng-footer">感情は使いこなせる道具になる</h3>
+    <p>ディフュージョンなど認知行動療法のテクニックも活用しよう 🌿</p>
+  </div>
+</div>
+</div>
+
+
+<!-- ════════════════════════════════
+     SCREEN: 3つの黄金ルール
+════════════════════════════════ -->
+<div class="screen" id="screen-golden">
+<div class="content">
+  <div class="detail-header" style="border-color:#B0D8F0;">
+    <div onclick="showLibrary()" class="back-btn">← ライブラリ</div>
+    <div class="badge" style="background:#4090C8;">✨ 3 RULES</div>
+    <h2>雑談が上手くなる<br>3つの黄金ルール</h2>
+    <p>この3つを心がければ、相手にいい印象を残せる 🌿</p>
+  </div>
+  <div class="prog-wrap">
+    <div class="prog-label"><span>チェック済み</span><span id="gl-prog-text">0 / 3</span></div>
+    <div class="prog-bar"><div class="prog-fill" id="gl-prog" style="background:linear-gradient(90deg,#4090C8,#70C8A0);"></div></div>
+  </div>
+  <div id="gl-items">
+    <div class="item-card" style="--item-color:#5098C8;--item-light:#D8EEF9;--item-shadow:#90C4E833" onclick="toggleItem(this,'gl',3)">
+      <div class="item-num"><span class="n">👂</span></div>
+      <div class="item-body">
+        <div class="item-title">聞く・話すの割合　6対4</div>
+        <div class="item-desc">相手の話をよく聞いて、自分の話は控えめに。聞き上手が会話上手への近道。</div>
+        <div class="item-quote">💡 「自分が話しすぎてないかな？」と意識する</div>
+      </div>
+      <div class="check-dot">✓</div>
+    </div>
+    <div class="item-card" style="--item-color:#70B880;--item-light:#DFF2E3;--item-shadow:#A8D5B033" onclick="toggleItem(this,'gl',3)">
+      <div class="item-num"><span class="n">⏱</span></div>
+      <div class="item-body">
+        <div class="item-title">1つの話の長さ　30秒以内</div>
+        <div class="item-desc">簡潔にまとめると相手に伝わりやすい！長くなりそうなら先に結論を言おう。</div>
+        <div class="item-quote">💡 「結論→理由→例」の順で30秒にまとめる</div>
+      </div>
+      <div class="check-dot">✓</div>
+    </div>
+    <div class="item-card" style="--item-color:#C4A8DC;--item-light:#EDE0F7;--item-shadow:#C4A8DC33" onclick="toggleItem(this,'gl',3)">
+      <div class="item-num"><span class="n">✨</span></div>
+      <div class="item-body">
+        <div class="item-title">話し始める前に　1秒の「間」</div>
+        <div class="item-desc">一呼吸おいてから落ち着いて話そう。間があることで言葉に重みが生まれる。</div>
+        <div class="item-quote">💡 返答する前に1秒だけ深呼吸する</div>
+      </div>
+      <div class="check-dot">✓</div>
+    </div>
+  </div>
+  <div class="footer-card" style="background:linear-gradient(135deg,#D8EEF9,#DFF2E3);">
+    <h3 id="gl-footer">3つのルールをマスターしよう！</h3>
+    <p>意識するだけで会話の質がぐっと上がる 🌿</p>
+  </div>
+</div>
+</div>
+
+
+<!-- ════════════════════════════════
+     SCREEN: 7つの会話スターター
+════════════════════════════════ -->
+<div class="screen" id="screen-starter">
+<div class="content">
+  <div class="detail-header" style="border-color:#B0D8F0;">
+    <div onclick="showLibrary()" class="back-btn">← ライブラリ</div>
+    <div class="badge" style="background:#4090C8;">💬 7 STARTERS</div>
+    <h2>話題を広げる<br>7つの会話スターター</h2>
+    <p>これらの話題で「感情が乗る雑談」を引き出そう 🌿</p>
+  </div>
+  <div class="prog-wrap">
+    <div class="prog-label"><span>使った話題</span><span id="st-prog-text">0 / 7</span></div>
+    <div class="prog-bar"><div class="prog-fill" id="st-prog" style="background:linear-gradient(90deg,#4090C8,#C4A8DC);"></div></div>
+  </div>
+  <div id="st-items">
+    <div class="item-card" style="--item-color:#5098C8;--item-light:#D8EEF9;--item-shadow:#90C4E833" onclick="toggleItem(this,'st',7)">
+      <div class="item-num"><span class="n">①</span></div>
+      <div class="item-body">
+        <div class="item-title">最近のニュース</div>
+        <div class="item-desc">相手の考えを知ることができる話題。時事ネタから価値観が見えてくる。</div>
+        <div class="item-quote">💡 「最近〇〇のニュース見ました？」</div>
+      </div>
+      <div class="check-dot">✓</div>
+    </div>
+    <div class="item-card" style="--item-color:#E0A0B8;--item-light:#FDE8ED;--item-shadow:#F9C0CB33" onclick="toggleItem(this,'st',7)">
+      <div class="item-num"><span class="n">②</span></div>
+      <div class="item-body">
+        <div class="item-title">この場所の印象（過去）</div>
+        <div class="item-desc">相手の過去と感情が引き出せる。共通の場所の思い出で一気に距離が縮まる。</div>
+        <div class="item-quote">💡 「ここ来るの初めてですか？」</div>
+      </div>
+      <div class="check-dot">✓</div>
+    </div>
+    <div class="item-card" style="--item-color:#70B880;--item-light:#DFF2E3;--item-shadow:#A8D5B033" onclick="toggleItem(this,'st',7)">
+      <div class="item-num"><span class="n">③</span></div>
+      <div class="item-body">
+        <div class="item-title">最近、盛り上がっていること</div>
+        <div class="item-desc">相手の感情を引き出しやすい話題。テンションが上がっていることは話しやすい。</div>
+        <div class="item-quote">💡 「最近ハマってることありますか？」</div>
+      </div>
+      <div class="check-dot">✓</div>
+    </div>
+    <div class="item-card" style="--item-color:#C09840;--item-light:#FBF2CC;--item-shadow:#F0D08033" onclick="toggleItem(this,'st',7)">
+      <div class="item-num"><span class="n">④</span></div>
+      <div class="item-body">
+        <div class="item-title">今週末の予定</div>
+        <div class="item-desc">誘いやすくなる話題。共通の趣味が見つかると一気に仲が深まる。</div>
+        <div class="item-quote">💡 「週末は何かされますか？」</div>
+      </div>
+      <div class="check-dot">✓</div>
+    </div>
+    <div class="item-card" style="--item-color:#9878C0;--item-light:#EDE0F7;--item-shadow:#C4A8DC33" onclick="toggleItem(this,'st',7)">
+      <div class="item-num"><span class="n">⑤</span></div>
+      <div class="item-body">
+        <div class="item-title">力を入れていること</div>
+        <div class="item-desc">相手のよりコアな部分を引き出せる。情熱を持っていることは話が尽きない。</div>
+        <div class="item-quote">💡 「最近何か力を入れてることありますか？」</div>
+      </div>
+      <div class="check-dot">✓</div>
+    </div>
+    <div class="item-card" style="--item-color:#E89860;--item-light:#FDEBD8;--item-shadow:#F8B98A33" onclick="toggleItem(this,'st',7)">
+      <div class="item-num"><span class="n">⑥</span></div>
+      <div class="item-body">
+        <div class="item-title">今日あったいいこと</div>
+        <div class="item-desc">話しやすくポジティブな雰囲気になる。相手の感情をプラスに引き上げられる。</div>
+        <div class="item-quote">💡 「今日いいことありましたか？」</div>
+      </div>
+      <div class="check-dot">✓</div>
+    </div>
+    <div class="item-card" style="--item-color:#50A8A0;--item-light:#D0F0EC;--item-shadow:#90D0C833" onclick="toggleItem(this,'st',7)">
+      <div class="item-num"><span class="n">⑦</span></div>
+      <div class="item-body">
+        <div class="item-title">知り合ったきっかけ（第一印象）</div>
+        <div class="item-desc">親近感がわく話題。出会いを振り返ることで関係性が温かくなる。</div>
+        <div class="item-quote">💡 「最初にお会いしたのっていつでしたっけ？」</div>
+      </div>
+      <div class="check-dot">✓</div>
+    </div>
+  </div>
+  <div class="footer-card" style="background:linear-gradient(135deg,#D8EEF9,#EDE0F7);">
+    <h3 id="st-footer">7つの話題を使いこなそう！</h3>
+    <p>感情が乗る雑談で、より深い関係を築こう 💬</p>
+  </div>
+</div>
+</div>
+
+
+<!-- ════════════════════════════════
+     SCREEN: ネットワーキング
+════════════════════════════════ -->
+<div class="screen" id="screen-networking">
+<div class="content">
+  <div class="detail-header" style="border-color:#B0D8F0;">
+    <div onclick="showLibrary()" class="back-btn">← ライブラリ</div>
+    <div class="badge" style="background:#4090C8;">🤝 8 TECHNIQUES</div>
+    <h2>コミュ障でもできる<br>5分間ネットワーキング</h2>
+    <p>8つのテクニックを実践的に練習して<br>コミュニケーションの達人を目指そう！</p>
+  </div>
+
+  <div class="prog-wrap">
+    <div class="prog-label"><span>チェック済み</span><span id="nw-prog-text">0 / 8</span></div>
+    <div class="prog-bar"><div class="prog-fill" id="nw-prog" style="background:linear-gradient(90deg,#4090C8,#70C8A0);"></div></div>
+  </div>
+
+  <div id="nw-items">
+    <div class="item-card" style="--item-color:#5098C8;--item-light:#D8EEF9;--item-shadow:#90C4E833" onclick="toggleItem(this,'nw',8)">
+      <div class="item-num"><span class="n">①</span></div>
+      <div class="item-body">
+        <div class="item-title">共通点を探す</div>
+        <div class="item-desc">相手の話に耳を傾け、仕事・趣味・最近の出来事から共通点を見つけよう。「私も〇〇が好きです！」と自然につなげる。</div>
+        <div class="item-quote">💡 共通点は作れる！相手の好きなことに興味を持つことから始めよう</div>
+      </div>
+      <div class="check-dot">✓</div>
+    </div>
+
+    <div class="item-card" style="--item-color:#E0A0B8;--item-light:#FDE8ED;--item-shadow:#F9C0CB33" onclick="toggleItem(this,'nw',8)">
+      <div class="item-num"><span class="n">②</span></div>
+      <div class="item-body">
+        <div class="item-title">ミミキングで親密度を高める</div>
+        <div class="item-desc">相手の言葉をそのまま（少し言い換えて）繰り返す。「旅行ですか！いいですね」とキーワードを繰り返してさらに掘り下げよう。</div>
+        <div class="item-quote">💡 そのまま繰り返すより少し言い換えると自然に聞こえる</div>
+      </div>
+      <div class="check-dot">✓</div>
+    </div>
+
+    <div class="item-card" style="--item-color:#C09840;--item-light:#FBF2CC;--item-shadow:#F0D08033" onclick="toggleItem(this,'nw',8)">
+      <div class="item-num"><span class="n">③</span></div>
+      <div class="item-body">
+        <div class="item-title">ポジティブゴシップで好印象を与える</div>
+        <div class="item-desc">相手の功績・良い点を第三者に伝えよう。悪口や噂話はNG！ポジティブな情報だけを広める。</div>
+        <div class="item-quote">💡 ポジティブゴシップは巡り巡って本人にも伝わる！</div>
+      </div>
+      <div class="check-dot">✓</div>
+    </div>
+
+    <div class="item-card" style="--item-color:#70B880;--item-light:#DFF2E3;--item-shadow:#A8D5B033" onclick="toggleItem(this,'nw',8)">
+      <div class="item-num"><span class="n">④</span></div>
+      <div class="item-body">
+        <div class="item-title">「5分ルール」を実践する</div>
+        <div class="item-desc">頼まれたことが5分以内でできるなら積極的に手伝おう。小さな手伝いの積み重ねが信頼を築く。</div>
+        <div class="item-quote">💡 断らないことが大事。小さな親切を積み重ねよう！</div>
+      </div>
+      <div class="check-dot">✓</div>
+    </div>
+
+    <div class="item-card" style="--item-color:#9878C0;--item-light:#EDE0F7;--item-shadow:#C4A8DC33" onclick="toggleItem(this,'nw',8)">
+      <div class="item-num"><span class="n">⑤</span></div>
+      <div class="item-body">
+        <div class="item-title">一貫性のある行動を心がける</div>
+        <div class="item-desc">約束を守る・連絡をこまめにするなど常に同じ行動をとろう。「あの人はいつも同じ」という安心感が信頼につながる。</div>
+        <div class="item-quote">💡 信頼は小さな一貫性の積み重ね。今日から始めよう！</div>
+      </div>
+      <div class="check-dot">✓</div>
+    </div>
+
+    <div class="item-card" style="--item-color:#E89860;--item-light:#FDEBD8;--item-shadow:#F8B98A33" onclick="toggleItem(this,'nw',8)">
+      <div class="item-num"><span class="n">⑥</span></div>
+      <div class="item-body">
+        <div class="item-title">定期的な連絡を心がける</div>
+        <div class="item-desc">最低15日に1回は連絡しよう。内容は軽くてOK。「元気？」「これ見て！」スタンプ1つでも十分。</div>
+        <div class="item-quote">💡 スマホのリマインダーに「連絡する」と設定しよう</div>
+      </div>
+      <div class="check-dot">✓</div>
+    </div>
+
+    <div class="item-card" style="--item-color:#50A8A0;--item-light:#D0F0EC;--item-shadow:#90D0C833" onclick="toggleItem(this,'nw',8)">
+      <div class="item-num"><span class="n">⑦</span></div>
+      <div class="item-body">
+        <div class="item-title">人間関係を管理する</div>
+        <div class="item-desc">近しい友達を約20人に絞って深い関係を築こう。大切な人リストを作って可視化し、リマインダーで連絡タイミングを管理。</div>
+        <div class="item-quote">💡 広く浅くより、狭く深く！質の高い人間関係を目指そう</div>
+      </div>
+      <div class="check-dot">✓</div>
+    </div>
+
+    <div class="item-card" style="--item-color:#C87858;--item-light:#FAD8D8;--item-shadow:#F0909033" onclick="toggleItem(this,'nw',8)">
+      <div class="item-num"><span class="n">⑧</span></div>
+      <div class="item-body">
+        <div class="item-title">社交スキルを磨く</div>
+        <div class="item-desc">毎日1つのテクニックを意識して実践しよう。最初はぎこちなくても大丈夫！練習記録をつけて振り返ると上達が実感できる。</div>
+        <div class="item-quote">💡 完璧を目指さない。少しずつ上達する自分を褒めよう！</div>
+      </div>
+      <div class="check-dot">✓</div>
+    </div>
+  </div>
+
+  <div class="footer-card" style="background:linear-gradient(135deg,#D8EEF9,#DFF2E3);">
+    <h3 id="nw-footer">8つのテクニックをマスターしよう！</h3>
+    <p>毎日少しずつ練習して、コミュニケーションの達人を目指そう 🌟</p>
+  </div>
+</div>
+</div>
+
+
+<!-- ════════════════════════════════
+     SCREEN: 他責思考
+════════════════════════════════ -->
+<div class="screen" id="screen-taseki">
+<div class="content">
+  <div class="detail-header" style="border-color:#D8C8F0;">
+    <div onclick="showLibrary()" class="back-btn">← ライブラリ</div>
+    <div class="badge" style="background:#A070C0;">🧭 5 STEPS</div>
+    <h2>他責思考を乗り越えて<br>自分の人生を取り戻す</h2>
+    <p>他責は「悪」ではなく自分を守る防衛反応。<br>未来の選択肢を増やすトレーニングを始めよう。</p>
+  </div>
+
+  <div class="prog-wrap">
+    <div class="prog-label"><span>チェック済み</span><span id="ts-prog-text">0 / 5</span></div>
+    <div class="prog-bar"><div class="prog-fill" id="ts-prog" style="background:linear-gradient(90deg,#9878C0,#4090C8);"></div></div>
+  </div>
+
+  <div id="ts-items">
+    <div class="item-card" style="--item-color:#E0A0B8;--item-light:#FDE8ED;--item-shadow:#F9C0CB33" onclick="toggleItem(this,'ts',5)">
+      <div class="item-num"><span class="n">①</span></div>
+      <div class="item-body">
+        <div class="item-title">「言い訳センサー」を起動させる</div>
+        <div class="item-desc">「でも」「だって」「仕方ない」が出たら自己観察のトリガー。「今、自分の何を守ろうとしているんだろう？」と問いかけよう。</div>
+        <div class="item-quote">💡 言い訳が出た瞬間に気づくだけでループから抜けやすくなる</div>
+      </div>
+      <div class="check-dot">✓</div>
+    </div>
+
+    <div class="item-card" style="--item-color:#5098C8;--item-light:#D8EEF9;--item-shadow:#90C4E833" onclick="toggleItem(this,'ts',5)">
+      <div class="item-num"><span class="n">②</span></div>
+      <div class="item-body">
+        <div class="item-title">「帰属再訓練」で事実と判断を切り分ける</div>
+        <div class="item-desc">失敗したときに3つを言語化する。①起きた「事実」②自分の「判断」③改善のための「次の一手」。感情的な判断と事実を分けることで自分で変える力を養う。</div>
+        <div class="item-quote">💡 ノートに「事実 / 判断 / 次の一手」の3列を書く</div>
+      </div>
+      <div class="check-dot">✓</div>
+    </div>
+
+    <div class="item-card" style="--item-color:#70B880;--item-light:#DFF2E3;--item-shadow:#A8D5B033" onclick="toggleItem(this,'ts',5)">
+      <div class="item-num"><span class="n">③</span></div>
+      <div class="item-body">
+        <div class="item-title">環境要因を3つに分類して整理する</div>
+        <div class="item-desc">「会社が悪い」と感じたら①変えられるもの②交渉できるもの③受け入れて運用するものに分類。変えられる1%に集中しよう。</div>
+        <div class="item-quote">💡 「ジョブクラフティング」の視点で部分的に変える</div>
+      </div>
+      <div class="check-dot">✓</div>
+    </div>
+
+    <div class="item-card" style="--item-color:#C09840;--item-light:#FBF2CC;--item-shadow:#F0D08033" onclick="toggleItem(this,'ts',5)">
+      <div class="item-num"><span class="n">④</span></div>
+      <div class="item-body">
+        <div class="item-title">謝罪を「信頼回復のスキル」として使う</div>
+        <div class="item-desc">謝ることは負けではなく高度なスキル。ミス時は①責任の所在②具体的な修復案③再発防止策をセットで伝えよう。</div>
+        <div class="item-quote">💡 自分を責めず、建設的に責任を取る練習をする</div>
+      </div>
+      <div class="check-dot">✓</div>
+    </div>
+
+    <div class="item-card" style="--item-color:#9878C0;--item-light:#EDE0F7;--item-shadow:#C4A8DC33" onclick="toggleItem(this,'ts',5)">
+      <div class="item-num"><span class="n">⑤</span></div>
+      <div class="item-body">
+        <div class="item-title">週1回「進捗モニタリング」を行う</div>
+        <div class="item-desc">週末5分だけ振り返る。①今週できたこと②原因③If-Thenルールを1つ作る。例：「もし体調が悪かったら、タスクを半分にして早く寝る」。</div>
+        <div class="item-quote">💡 あらかじめルールを決めて言い訳をなくす</div>
+      </div>
+      <div class="check-dot">✓</div>
+    </div>
+  </div>
+
+  <div class="footer-card" style="background:linear-gradient(135deg,#EDE0F7,#D8EEF9);">
+    <h3 id="ts-footer">未来の選択肢を増やしていこう</h3>
+    <p>誰のせいかを探すのではなく、<br>未来の自分の可能性を広げることが大切 🧭</p>
+  </div>
+</div>
+</div>
+
+
+<!-- ════════════════════════════════
+     SCREEN: 比較癖・セルフコンパッション
+════════════════════════════════ -->
+<div class="screen" id="screen-hikaku">
+<div class="content">
+  <div class="detail-header" style="border-color:#D8C8F0;">
+    <div onclick="showLibrary()" class="back-btn">← ライブラリ</div>
+    <div class="badge" style="background:#C070A8;">💗 6 STEPS</div>
+    <h2>比較癖の直し方<br>〜ハーバード式<br>セルフコンパッション〜</h2>
+    <p>自己受容と自己肯定感を高めて<br>他人との比較に振り回されない自分になろう</p>
+  </div>
+
+  <div class="prog-wrap">
+    <div class="prog-label"><span>チェック済み</span><span id="hk-prog-text">0 / 6</span></div>
+    <div class="prog-bar"><div class="prog-fill" id="hk-prog" style="background:linear-gradient(90deg,#C070A8,#A070C0);"></div></div>
+  </div>
+
+  <div id="hk-items">
+    <div class="item-card" style="--item-color:#E0A0C0;--item-light:#FDE8F4;--item-shadow:#F9C0D833" onclick="toggleItem(this,'hk',6)">
+      <div class="item-num"><span class="n">①</span></div>
+      <div class="item-body">
+        <div class="item-title">フレンドトレーニングで自己への優しさを鍛える</div>
+        <div class="item-desc">親友に辛いことがあったとき、どんな言葉をかけるか考えよう。そして同じ言葉を自分にかけてみる。自分への言葉の厳しさに気づくことができる。</div>
+        <div class="item-quote">💡 「親友に言えない言葉は自分にも言わない」</div>
+      </div>
+      <div class="check-dot">✓</div>
+    </div>
+
+    <div class="item-card" style="--item-color:#9878C0;--item-light:#EDE0F7;--item-shadow:#C4A8DC33" onclick="toggleItem(this,'hk',6)">
+      <div class="item-num"><span class="n">②</span></div>
+      <div class="item-body">
+        <div class="item-title">人間性トレーニングで「自分だけの苦しみではない」と認識する</div>
+        <div class="item-desc">SNSの輝かしい情報は表面的なもの。誰もが悩みや苦しみを抱えて生きていることを理解し、自分だけが特別に辛いわけではないと気づこう。</div>
+        <div class="item-quote">💡 「みんな見えないところで悩んでいる」</div>
+      </div>
+      <div class="check-dot">✓</div>
+    </div>
+
+    <div class="item-card" style="--item-color:#5098C8;--item-light:#D8EEF9;--item-shadow:#90C4E833" onclick="toggleItem(this,'hk',6)">
+      <div class="item-num"><span class="n">③</span></div>
+      <div class="item-body">
+        <div class="item-title">「スングタッチ」でストレスを和らげる</div>
+        <div class="item-desc">手のひらと手の甲をこすり合わせて、身体のあたたかさを感じよう。身体的なストレスやネガティブな感情を緩和する効果がある。</div>
+        <div class="item-quote">💡 緊張したときに手をこすり合わせるだけでOK</div>
+      </div>
+      <div class="check-dot">✓</div>
+    </div>
+
+    <div class="item-card" style="--item-color:#70B880;--item-light:#DFF2E3;--item-shadow:#A8D5B033" onclick="toggleItem(this,'hk',6)">
+      <div class="item-num"><span class="n">④</span></div>
+      <div class="item-body">
+        <div class="item-title">マッサージボール・ヨガ・ストレッチでセルフケア</div>
+        <div class="item-desc">身体の緊張をほぐすことで精神的な安定にもつながる。マッサージボールやヨガ、ストレッチを積極的に取り入れて自分自身をケアしよう。</div>
+        <div class="item-quote">💡 体をほぐすと心もほぐれる</div>
+      </div>
+      <div class="check-dot">✓</div>
+    </div>
+
+    <div class="item-card" style="--item-color:#E89860;--item-light:#FDEBD8;--item-shadow:#F8B98A33" onclick="toggleItem(this,'hk',6)">
+      <div class="item-num"><span class="n">⑤</span></div>
+      <div class="item-body">
+        <div class="item-title">コンパッションムーブで体の不快感を発見し緩和する</div>
+        <div class="item-desc">肩こりや腰痛など身体の不快感に意識を向け、原因となる姿勢や動作を改善しよう。身体的なストレスを軽減することで心も楽になる。</div>
+        <div class="item-quote">💡 「どこが不快？」と身体に問いかける習慣をつける</div>
+      </div>
+      <div class="check-dot">✓</div>
+    </div>
+
+    <div class="item-card" style="--item-color:#C09840;--item-light:#FBF2CC;--item-shadow:#F0D08033" onclick="toggleItem(this,'hk',6)">
+      <div class="item-num"><span class="n">⑥</span></div>
+      <div class="item-body">
+        <div class="item-title">デイリーマインドフルネスで自己批判を減らす</div>
+        <div class="item-desc">お茶を飲むとき香り・温度・味わいを意識してみよう。日常の単純な行動に意識を集中することで雑念や自己批判を減らし心の安定を図れる。</div>
+        <div class="item-quote">💡 1日1回、「今この瞬間」だけに集中する時間を作る</div>
+      </div>
+      <div class="check-dot">✓</div>
+    </div>
+  </div>
+
+  <div class="footer-card" style="background:linear-gradient(135deg,#FDE8F4,#EDE0F7);">
+    <h3 id="hk-footer">自分に優しくすることから始めよう</h3>
+    <p>比較に振り回されない自分になるための第一歩 💗</p>
+  </div>
+</div>
+</div>
+
+
+<!-- Bottom nav -->
+<div class="bottom-nav">
+  <div class="nav-item active" id="nav-home" onclick="showLibrary()">
+    <div class="nav-icon">🏠</div>
+    <div>ホーム</div>
+  </div>
+  <div class="nav-item" id="nav-mental" onclick="showLibrary(); filterCat('mental', document.querySelector('[data-cat=mental]'))">
+    <div class="nav-icon">🧠</div>
+    <div>メンタル</div>
+  </div>
+  <div class="nav-item" id="nav-comm" onclick="showLibrary(); filterCat('comm', document.querySelector('[data-cat=comm]'))">
+    <div class="nav-icon">💬</div>
+    <div>コミュ</div>
+  </div>
+  <div class="nav-item" id="nav-habit" onclick="showLibrary(); filterCat('habit', document.querySelector('[data-cat=habit]'))">
+    <div class="nav-icon">🌱</div>
+    <div>習慣</div>
+  </div>
+</div>
+
+<script>
+  // ── Screen navigation ──
+  let currentScreen = 'library';
+
+  function showLibrary() {
+    document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
+    document.getElementById('screen-library').classList.add('active');
+    window.scrollTo(0, 0);
+    currentScreen = 'library';
+    document.querySelectorAll('.nav-item').forEach(n => n.classList.remove('active'));
+    document.getElementById('nav-home').classList.add('active');
+  }
+
+  function showDetail(id) {
+    document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
+    document.getElementById('screen-' + id).classList.add('active');
+    window.scrollTo(0, 0);
+    currentScreen = id;
+  }
+
+  // ── Category filter ──
+  function filterCat(cat, tabEl) {
+    document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+    if (tabEl) tabEl.classList.add('active');
+
+    document.querySelectorAll('.section-wrap').forEach(s => {
+      s.style.display = (cat === 'all' || s.dataset.cat === cat) ? 'block' : 'none';
+    });
+  }
+
+  // ── Check toggle ──
+  const counts = { fk: 0, ms: 0, zn: 0, mk: 0, ng: 0, gl: 0, st: 0, ts: 0, nw: 0, hk: 0 };
+  const totals = { fk: 5, ms: 5, zn: 10, mk: 8, ng: 6, gl: 3, st: 7, ts: 5, nw: 8, hk: 6 };
+
+  const footerMsgs = {
+    fk: ['不完全な自分を受け入れよう！', 'いいスタート！🌱', 'いい調子！もう少し✨', '全部クリア！完璧じゃなくていい🎉'],
+    ms: ['体と脳を同時に鍛えよう！', 'いいスタート！🌱', 'いい調子！もう少し✨', '全部クリア！成長を実感しよう🎉'],
+    zn: ['何個当てはまった？', '少し当てはまるね😅', 'かなり当てはまる⚠️', 'ほぼ全部！改善しよう🔥'],
+    mk: ['自分を大切に、コツコツ実践 ♪', 'いいスタート！🌱', 'いい調子！もう少し⚡', '全部クリア！めんどくさがり脱出🎉'],
+    ng: ['感情は使いこなせる道具になる', 'いいスタート！🌱', 'いい調子！もう少し✨', '全部クリア！感情をマスターしよう🎉'],
+    gl: ['3つのルールをマスターしよう！', 'いいスタート！🌱', 'あと1つ！✨', '全部クリア！会話上手への第一歩🎉'],
+    st: ['7つの話題を使いこなそう！', 'いいスタート！🌱', 'いい調子！もう少し💬', '全部クリア！話題に困らなくなる🎉'],
+    ts: ['未来の選択肢を増やしていこう', 'いいスタート！🌱', 'いい調子！もう少し🧭', '全部クリア！自分の人生を取り戻そう🎉'],
+    nw: ['8つのテクニックをマスターしよう！', 'いいスタート！🌱', 'いい調子！もう少し🤝', '全部クリア！コミュニケーションの達人🎉'],
+    hk: ['自分に優しくすることから始めよう', 'いいスタート！🌱', 'いい調子！もう少し💗', '全部クリア！比較に振り回されない自分へ🎉'],
+  };
+
+  function toggleItem(card, key, total) {
+    const isChecked = card.classList.toggle('checked');
+    counts[key] += isChecked ? 1 : -1;
+    const n = counts[key], t = totals[key];
+    const pct = (n / t) * 100;
+    document.getElementById(key + '-prog').style.width = pct + '%';
+    document.getElementById(key + '-prog-text').textContent = n + ' / ' + t;
+    const msgs = footerMsgs[key];
+    const idx = n === 0 ? 0 : n <= Math.floor(t*0.3) ? 1 : n <= Math.floor(t*0.7) ? 2 : 3;
+    const el = document.getElementById(key + '-footer');
+    if (el) el.textContent = msgs[idx];
+  }
+</script>
+</body>
+</html>
