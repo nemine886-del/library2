@@ -423,7 +423,7 @@
       <div class="section-head" style="border-color:#90C4E8; color:#4090C8;">
         <div class="icon" style="background:#D8EEF9;">💬</div>
         <h2>コミュニケーション</h2>
-        <div class="cnt" style="background:#D8EEF9; color:#4090C8;">4件</div>
+        <div class="cnt" style="background:#D8EEF9; color:#4090C8;">5件</div>
       </div>
 
       <div class="lib-card" style="--card-color:#4090C8;--card-light:#D8EEF9; border-color:#B0D8F0;"
@@ -466,6 +466,17 @@
           <div class="tag">コミュニケーション</div>
           <div class="title">コミュ障でもできるネットワーキング</div>
           <div class="sub">共通点・ミミキング・5分ルール・関係管理など 8テクニック</div>
+        </div>
+        <div class="arrow">›</div>
+      </div>
+
+      <div class="lib-card" style="--card-color:#4090C8;--card-light:#D8EEF9; border-color:#B0D8F0;"
+           onclick="showDetail('shitsumon')">
+        <div class="emoji">❓</div>
+        <div class="info">
+          <div class="tag">コミュニケーション</div>
+          <div class="title">親密な関係を築く質問力</div>
+          <div class="sub">雑談→感情→価値観→深い質問へ自然に移行する 7ステップ</div>
         </div>
         <div class="arrow">›</div>
       </div>
@@ -1358,6 +1369,103 @@
 </div>
 
 
+<!-- ════════════════════════════════
+     SCREEN: 質問力
+════════════════════════════════ -->
+<div class="screen" id="screen-shitsumon">
+<div class="content">
+  <div class="detail-header" style="border-color:#B0D8F0;">
+    <div onclick="showLibrary()" class="back-btn">← ライブラリ</div>
+    <div class="badge" style="background:#4090C8;">❓ 7 STEPS</div>
+    <h2>親密な関係を築く<br>質問力</h2>
+    <p>軽い話題から深い話題へ自然に移行し<br>魅力的な会話を展開しよう</p>
+  </div>
+
+  <div class="prog-wrap">
+    <div class="prog-label"><span>チェック済み</span><span id="sq-prog-text">0 / 7</span></div>
+    <div class="prog-bar"><div class="prog-fill" id="sq-prog" style="background:linear-gradient(90deg,#4090C8,#A070C0);"></div></div>
+  </div>
+
+  <div id="sq-items">
+    <div class="item-card" style="--item-color:#5098C8;--item-light:#D8EEF9;--item-shadow:#90C4E833" onclick="toggleItem(this,'sq',7)">
+      <div class="item-num"><span class="n">①</span></div>
+      <div class="item-body">
+        <div class="item-title">雑談力を磨く</div>
+        <div class="item-desc">ニュース・天気・趣味など軽い話題で会話を続けて場を温めよう。相手に質問しながら話を広げていく練習から始める。</div>
+        <div class="item-quote">💡 まず「場を温める」ことが最初のステップ</div>
+      </div>
+      <div class="check-dot">✓</div>
+    </div>
+
+    <div class="item-card" style="--item-color:#E0A0B8;--item-light:#FDE8ED;--item-shadow:#F9C0CB33" onclick="toggleItem(this,'sq',7)">
+      <div class="item-num"><span class="n">②</span></div>
+      <div class="item-body">
+        <div class="item-title">感情や思い出を引き出す質問をする</div>
+        <div class="item-desc">「最近楽しかったことは？」「感動した映画は？」のように相手の心を動かすような質問を心がけよう。</div>
+        <div class="item-quote">💡 単なる情報交換より感情を引き出す質問を</div>
+      </div>
+      <div class="check-dot">✓</div>
+    </div>
+
+    <div class="item-card" style="--item-color:#70B880;--item-light:#DFF2E3;--item-shadow:#A8D5B033" onclick="toggleItem(this,'sq',7)">
+      <div class="item-num"><span class="n">③</span></div>
+      <div class="item-body">
+        <div class="item-title">制限を設けた質問をする</div>
+        <div class="item-desc">「旅行に行くならどこ？」に「予算10万円・国内だったら？」と制限を加えよう。具体的なイメージを共有でき、より深い価値観に触れられる。</div>
+        <div class="item-quote">💡 制限を加えると具体的で答えやすくなる</div>
+      </div>
+      <div class="check-dot">✓</div>
+    </div>
+
+    <div class="item-card" style="--item-color:#C09840;--item-light:#FBF2CC;--item-shadow:#F0D08033" onclick="toggleItem(this,'sq',7)">
+      <div class="item-num"><span class="n">④</span></div>
+      <div class="item-body">
+        <div class="item-title">価値観やライフスタイルを探る質問をする</div>
+        <div class="item-desc">「休日は何をして過ごすのが好き？」「どんなことに幸せを感じる？」を通して相手の価値観を探ろう。共通点・相違点が深い理解につながる。</div>
+        <div class="item-quote">💡 価値観の質問で一気に距離が縮まる</div>
+      </div>
+      <div class="check-dot">✓</div>
+    </div>
+
+    <div class="item-card" style="--item-color:#9878C0;--item-light:#EDE0F7;--item-shadow:#C4A8DC33" onclick="toggleItem(this,'sq',7)">
+      <div class="item-num"><span class="n">⑤</span></div>
+      <div class="item-body">
+        <div class="item-title">感情的反応を引き出す深い質問をする</div>
+        <div class="item-desc">「今までで一番嬉しかったことは？」「人生で大切にしていることは？」など相手の内面に触れる質問で強い共感と信頼関係を築こう。</div>
+        <div class="item-quote">💡 深い質問は相手の本音を引き出す</div>
+      </div>
+      <div class="check-dot">✓</div>
+    </div>
+
+    <div class="item-card" style="--item-color:#E89860;--item-light:#FDEBD8;--item-shadow:#F8B98A33" onclick="toggleItem(this,'sq',7)">
+      <div class="item-num"><span class="n">⑥</span></div>
+      <div class="item-body">
+        <div class="item-title">踏み込んだ質問をする</div>
+        <div class="item-desc">関係が深まったら「自分の強みと弱みは？」「どんな夢を持っている？」など踏み込んだ質問を。ただし相手との距離感を見極めること。</div>
+        <div class="item-quote">💡 タイミングと距離感が大切</div>
+      </div>
+      <div class="check-dot">✓</div>
+    </div>
+
+    <div class="item-card" style="--item-color:#50A8A0;--item-light:#D0F0EC;--item-shadow:#90D0C833" onclick="toggleItem(this,'sq',7)">
+      <div class="item-num"><span class="n">⑦</span></div>
+      <div class="item-body">
+        <div class="item-title">相手の意見を尊重し傾聴する</div>
+        <div class="item-desc">質問するだけでなく相手の意見を真剣に聞こう。相づちを打ち共感しながら聴くことで「この人は話を聞いてくれる」という安心感を与えられる。</div>
+        <div class="item-quote">💡 聴く姿勢が信頼関係の土台になる</div>
+      </div>
+      <div class="check-dot">✓</div>
+    </div>
+  </div>
+
+  <div class="footer-card" style="background:linear-gradient(135deg,#D8EEF9,#EDE0F7);">
+    <h3 id="sq-footer">質問力を磨いて魅力的な会話を！</h3>
+    <p>軽い話題から深い話題へ、自然に移行していこう 💬</p>
+  </div>
+</div>
+</div>
+
+
 <!-- Bottom nav -->
 <div class="bottom-nav">
   <div class="nav-item active" id="nav-home" onclick="showLibrary()">
@@ -1409,8 +1517,8 @@
   }
 
   // ── Check toggle ──
-  const counts = { fk: 0, ms: 0, zn: 0, mk: 0, ng: 0, gl: 0, st: 0, ts: 0, nw: 0, hk: 0 };
-  const totals = { fk: 5, ms: 5, zn: 10, mk: 8, ng: 6, gl: 3, st: 7, ts: 5, nw: 8, hk: 6 };
+  const counts = { fk: 0, ms: 0, zn: 0, mk: 0, ng: 0, gl: 0, st: 0, ts: 0, nw: 0, hk: 0, sq: 0 };
+  const totals = { fk: 5, ms: 5, zn: 10, mk: 8, ng: 6, gl: 3, st: 7, ts: 5, nw: 8, hk: 6, sq: 7 };
 
   const footerMsgs = {
     fk: ['不完全な自分を受け入れよう！', 'いいスタート！🌱', 'いい調子！もう少し✨', '全部クリア！完璧じゃなくていい🎉'],
@@ -1423,6 +1531,7 @@
     ts: ['未来の選択肢を増やしていこう', 'いいスタート！🌱', 'いい調子！もう少し🧭', '全部クリア！自分の人生を取り戻そう🎉'],
     nw: ['8つのテクニックをマスターしよう！', 'いいスタート！🌱', 'いい調子！もう少し🤝', '全部クリア！コミュニケーションの達人🎉'],
     hk: ['自分に優しくすることから始めよう', 'いいスタート！🌱', 'いい調子！もう少し💗', '全部クリア！比較に振り回されない自分へ🎉'],
+    sq: ['質問力を磨いて魅力的な会話を！', 'いいスタート！🌱', 'いい調子！もう少し❓', '全部クリア！質問の達人🎉'],
   };
 
   function toggleItem(card, key, total) {
